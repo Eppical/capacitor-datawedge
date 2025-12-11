@@ -47,6 +47,19 @@ DataWedge.addListener('scan', event => {
 // Check API for more methods
 ```
 
+### Example application
+
+You can find an Ionic/Angular 16 demo that exercises every plugin method and shows the
+`scan` listener output in `examples/datawedge-demo`.
+
+```bash
+cd examples/datawedge-demo
+npm install
+npm start
+# or build & sync with Capacitor 7
+npm run build && npm run cap:sync
+```
+
 ## API
 
 <docgen-index>

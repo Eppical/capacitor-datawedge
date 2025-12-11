@@ -1,0 +1,24 @@
+ion-card + ion-card {
+  margin-top: 16px;
+}
+
+ion-card-title,
+ion-card-subtitle {
+  white-space: normal;
+}
+
+.timestamp {
+  color: var(--ion-color-medium-shade);
+  font-size: 12px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--ion-color-medium);
+  margin: 12px 0;
+}
+
+.log-entry {
+  white-space: pre-line;
+  font-family: var(--ion-font-family, 'Segoe UI', system-ui, sans-serif);
+}

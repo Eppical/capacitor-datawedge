@@ -1,0 +1,102 @@
+<ion-app>
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>{{ title }}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Ejemplo de uso</ion-card-title>
+        <ion-card-subtitle>Capacitor DataWedge + Angular 16</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <p>
+          Invoca todos los métodos expuestos por el plugin y visualiza en tiempo real los
+          eventos del listener <code>scan</code> que llegan desde DataWedge.
+        </p>
+        <ion-chip color="success" *ngIf="!isBusy">
+          <ion-label>{{ statusMessage }}</ion-label>
+        </ion-chip>
+        <ion-chip color="warning" *ngIf="isBusy">
+          <ion-label>Ejecutando acción: {{ activeAction }}</ion-label>
+        </ion-chip>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Métodos del plugin</ion-card-title>
+        <ion-card-subtitle>Invoca cualquier acción disponible</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="primary" (click)="enable()" [disabled]="isBusy">Habilitar DataWedge</ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="medium" (click)="disable()" [disabled]="isBusy">Deshabilitar DataWedge</ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="tertiary" (click)="enableScanner()" [disabled]="isBusy">Habilitar escáner</ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="dark" (click)="disableScanner()" [disabled]="isBusy">Deshabilitar escáner</ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="success" (click)="startScanning()" [disabled]="isBusy">Iniciar escaneo por software</ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="danger" (click)="stopScanning()" [disabled]="isBusy">Detener escaneo por software</ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <ion-item class="ion-margin-top">
+          <ion-label position="stacked">Intent action para __registerReceiver</ion-label>
+          <ion-input [(ngModel)]="intentAction" placeholder="com.capacitor.datawedge.RESULT_ACTION"></ion-input>
+        </ion-item>
+        <ion-button class="ion-margin-top" expand="block" color="secondary" (click)="registerReceiver()" [disabled]="isBusy">
+          Registrar receiver
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Eventos de escaneo</ion-card-title>
+        <ion-card-subtitle>Salida de DataWedge.addListener('scan', ...)</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list *ngIf="scanEvents.length > 0; else emptyState">
+          <ion-item *ngFor="let scan of scanEvents; trackBy: trackByTimestamp">
+            <ion-label>
+              <h3>{{ scan.data }}</h3>
+              <p>Tipo: {{ scan.type || 'No provisto' }}</p>
+              <p class="timestamp">{{ scan.timestamp }}</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+        <ng-template #emptyState>
+          <p class="empty">Aún no se recibieron eventos de escaneo.</p>
+        </ng-template>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Bitácora</ion-card-title>
+        <ion-card-subtitle>Últimas acciones ejecutadas</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item *ngFor="let log of logs">
+            <ion-label class="log-entry">{{ log }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  </ion-content>
+</ion-app>

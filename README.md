@@ -35,6 +35,13 @@ Enable intent output in your DataWedge profile, set `Intent delivery` to `Broadc
 ```js
 import { DataWedge } from 'capacitor-datawedge';
 
+// Configure a DataWedge profile automatically (profile name required).
+// The intentAction can be customized; defaults to the plugin receiver action.
+await DataWedge.configure({
+  profileName: 'MyAppProfile',
+  intentAction: 'com.capacitor.datawedge.RESULT_ACTION',
+});
+
 // Optional: in case you want to use your custom intent action instead
 // DataWedge.__registerReceiver({ intent: "my.custom.action" });
 
@@ -70,6 +77,9 @@ npm run build && npm run cap:sync
 * [`disableScanner()`](#disablescanner)
 * [`startScanning()`](#startscanning)
 * [`stopScanning()`](#stopscanning)
+* [`isReady()`](#isready)
+* [`hasScanner()`](#hasscanner)
+* [`configure(...)`](#configure)
 * [`addListener('scan', ...)`](#addlistenerscan-)
 * [`__registerReceiver(...)`](#__registerreceiver)
 * [Interfaces](#interfaces)
@@ -174,6 +184,55 @@ Broadcasts intent action with `.SOFT_SCAN_TRIGGER` extra set to `STOP_SCANNING`
 --------------------
 
 
+### isReady()
+
+```typescript
+isReady() => Promise<ReadyResult>
+```
+
+Checks if DataWedge is ready by requesting version information.
+
+**Returns:** <code>Promise&lt;<a href="#readyresult">ReadyResult</a>&gt;</code>
+
+**Since:** 0.4.0
+
+--------------------
+
+
+### hasScanner()
+
+```typescript
+hasScanner() => Promise<ScannerStatusResult>
+```
+
+Checks if a scanner is available on the device.
+
+**Returns:** <code>Promise&lt;<a href="#scannerstatusresult">ScannerStatusResult</a>&gt;</code>
+
+**Since:** 0.4.0
+
+--------------------
+
+
+### configure(...)
+
+```typescript
+configure(options: ConfigureOptions) => Promise<ConfigureResult>
+```
+
+Creates/updates a DataWedge profile and configures intent output.
+
+| Param         | Type                                                          |
+| ------------- | ------------------------------------------------------------- |
+| **`options`** | <code><a href="#configureoptions">ConfigureOptions</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#configureresult">ConfigureResult</a>&gt;</code>
+
+**Since:** 0.4.0
+
+--------------------
+
+
 ### addListener('scan', ...)
 
 ```typescript
@@ -218,6 +277,31 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 ### Interfaces
 
 
+#### ReadyResult
+
+| Prop              | Type                                                            | Description                                         | Since |
+| ----------------- | --------------------------------------------------------------- | --------------------------------------------------- | ----- |
+| **`ready`**       | <code>boolean</code>                                            | Whether DataWedge responded with version info.      | 0.4.0 |
+| **`versionInfo`** | <code><a href="#record">Record</a>&lt;string, string&gt;</code> | Version info returned by DataWedge, when available. | 0.4.0 |
+
+
+#### ScannerStatusResult
+
+| Prop             | Type                        | Description                                              | Since |
+| ---------------- | --------------------------- | -------------------------------------------------------- | ----- |
+| **`hasScanner`** | <code>boolean</code>        | Whether the device reports an available scanner.         | 0.4.0 |
+| **`status`**     | <code>string \| null</code> | Raw status string returned by DataWedge, when available. | 0.4.0 |
+
+
+#### ConfigureResult
+
+| Prop          | Type                 | Description                                  | Since |
+| ------------- | -------------------- | -------------------------------------------- | ----- |
+| **`success`** | <code>boolean</code> | Whether DataWedge reported success.          | 0.4.0 |
+| **`command`** | <code>string</code>  | Raw DataWedge command name, when available.  | 0.4.0 |
+| **`result`**  | <code>string</code>  | Raw DataWedge result string, when available. | 0.4.0 |
+
+
 #### PluginListenerHandle
 
 | Prop         | Type                                      |
@@ -234,6 +318,18 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 
 
 ### Type Aliases
+
+
+#### Record
+
+Construct a type with a set of properties K of type T
+
+<code>{ [P in K]: T; }</code>
+
+
+#### ConfigureOptions
+
+<code>{ /** * DataWedge profile name to create/update. * * @since 0.4.0 */ profileName: string; /** * Package name to associate with the profile. * Defaults to the current app package on Android. * * @since 0.4.0 */ packageName?: string; /** * Activity name to associate with the profile. * Defaults to '*'. * * @since 0.4.0 */ activityName?: string; /** * Intent action DataWedge should broadcast scan results to. * Defaults to the same action used by the plugin receiver. * * @since 0.4.0 */ intentAction?: string; }</code>
 
 
 #### ScanListener

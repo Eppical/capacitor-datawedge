@@ -27,6 +27,94 @@ export type RegisterOptions = {
   intent?: string;
 };
 
+export type ConfigureOptions = {
+  /**
+   * DataWedge profile name to create/update.
+   *
+   * @since 0.4.0
+   */
+  profileName: string;
+
+  /**
+   * Package name to associate with the profile.
+   * Defaults to the current app package on Android.
+   *
+   * @since 0.4.0
+   */
+  packageName?: string;
+
+  /**
+   * Activity name to associate with the profile.
+   * Defaults to '*'.
+   *
+   * @since 0.4.0
+   */
+  activityName?: string;
+
+  /**
+   * Intent action DataWedge should broadcast scan results to.
+   * Defaults to the same action used by the plugin receiver.
+   *
+   * @since 0.4.0
+   */
+  intentAction?: string;
+};
+
+export interface ConfigureResult {
+  /**
+   * Whether DataWedge reported success.
+   *
+   * @since 0.4.0
+   */
+  success: boolean;
+
+  /**
+   * Raw DataWedge command name, when available.
+   *
+   * @since 0.4.0
+   */
+  command?: string;
+
+  /**
+   * Raw DataWedge result string, when available.
+   *
+   * @since 0.4.0
+   */
+  result?: string;
+}
+
+export interface ReadyResult {
+  /**
+   * Whether DataWedge responded with version info.
+   *
+   * @since 0.4.0
+   */
+  ready: boolean;
+
+  /**
+   * Version info returned by DataWedge, when available.
+   *
+   * @since 0.4.0
+   */
+  versionInfo?: Record<string, string>;
+}
+
+export interface ScannerStatusResult {
+  /**
+   * Whether the device reports an available scanner.
+   *
+   * @since 0.4.0
+   */
+  hasScanner: boolean;
+
+  /**
+   * Raw status string returned by DataWedge, when available.
+   *
+   * @since 0.4.0
+   */
+  status?: string | null;
+}
+
 export interface DataWedgePlugin {
   /**
    * Enables DataWedge
@@ -81,6 +169,27 @@ export interface DataWedgePlugin {
    * @since 0.1.2
    */
   stopScanning(): Promise<void>;
+
+  /**
+   * Checks if DataWedge is ready by requesting version information.
+   *
+   * @since 0.4.0
+   */
+  isReady(): Promise<ReadyResult>;
+
+  /**
+   * Checks if a scanner is available on the device.
+   *
+   * @since 0.4.0
+   */
+  hasScanner(): Promise<ScannerStatusResult>;
+
+  /**
+   * Creates/updates a DataWedge profile and configures intent output.
+   *
+   * @since 0.4.0
+   */
+  configure(options: ConfigureOptions): Promise<ConfigureResult>;
 
   /**
    * Listen for successful barcode readings

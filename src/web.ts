@@ -1,6 +1,12 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { DataWedgePlugin } from './definitions';
+import type {
+  ConfigureOptions,
+  ConfigureResult,
+  DataWedgePlugin,
+  ReadyResult,
+  ScannerStatusResult,
+} from './definitions';
 
 export class DataWedgeWeb extends WebPlugin implements DataWedgePlugin {
   async enable(): Promise<void> {
@@ -24,6 +30,18 @@ export class DataWedgeWeb extends WebPlugin implements DataWedgePlugin {
   }
 
   async stopScanning(): Promise<void> {
+    throw 'DataWedge is not supported on web';
+  }
+
+  async isReady(): Promise<ReadyResult> {
+    throw 'DataWedge is not supported on web';
+  }
+
+  async hasScanner(): Promise<ScannerStatusResult> {
+    throw 'DataWedge is not supported on web';
+  }
+
+  async configure(_options: ConfigureOptions): Promise<ConfigureResult> {
     throw 'DataWedge is not supported on web';
   }
 

@@ -13,7 +13,7 @@
       </ion-card-header>
       <ion-card-content>
         <p>
-          Invoca todos los métodos expuestos por el plugin y visualiza en tiempo real los
+          Invoca los métodos del plugin y visualiza en tiempo real los
           eventos del listener <code>scan</code> que llegan desde DataWedge.
         </p>
         <ion-chip color="success" *ngIf="!isBusy">
@@ -31,79 +31,51 @@
         <ion-card-subtitle>Invoca cualquier acción disponible</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
-        <ion-grid>
-          <ion-row>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="primary" (click)="enable()" [disabled]="isBusy">Habilitar DataWedge</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="medium" (click)="disable()" [disabled]="isBusy">Deshabilitar DataWedge</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="tertiary" (click)="enableScanner()" [disabled]="isBusy">Habilitar escáner</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="dark" (click)="disableScanner()" [disabled]="isBusy">Deshabilitar escáner</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="success" (click)="startScanning()" [disabled]="isBusy">Iniciar escaneo por software</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="danger" (click)="stopScanning()" [disabled]="isBusy">Detener escaneo por software</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="secondary" (click)="checkReady()" [disabled]="isBusy">Verificar DataWedge listo</ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" color="secondary" (click)="checkScanner()" [disabled]="isBusy">Verificar scanner disponible</ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-
-        <ion-item class="ion-margin-top">
-          <ion-label position="stacked">Intent action para __registerReceiver</ion-label>
-          <ion-input [(ngModel)]="intentAction" placeholder="com.capacitor.datawedge.RESULT_ACTION"></ion-input>
-        </ion-item>
-        <ion-button class="ion-margin-top" expand="block" color="secondary" (click)="registerReceiver()" [disabled]="isBusy">
-          Registrar receiver
-        </ion-button>
-        <ion-text *ngIf="lastReadyResult">
-          <p>DataWedge listo: {{ lastReadyResult.ready ? 'sí' : 'no' }}</p>
-        </ion-text>
-        <ion-text *ngIf="lastScannerResult">
-          <p>Scanner disponible: {{ lastScannerResult.hasScanner ? 'sí' : 'no' }} ({{ lastScannerResult.status || 'sin estado' }})</p>
-        </ion-text>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Configuración automática</ion-card-title>
-        <ion-card-subtitle>Crear/actualizar perfil DataWedge</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
         <ion-item>
           <ion-label position="stacked">Nombre de perfil</ion-label>
           <ion-input [(ngModel)]="profileName" placeholder="DataWedgeDemo"></ion-input>
         </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Package name (opcional)</ion-label>
-          <ion-input [(ngModel)]="profilePackageName" placeholder="com.mi.app"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Activity name (opcional)</ion-label>
-          <ion-input [(ngModel)]="profileActivityName" placeholder="*"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Intent action del perfil</ion-label>
-          <ion-input [(ngModel)]="profileIntentAction" placeholder="com.capacitor.datawedge.RESULT_ACTION"></ion-input>
-        </ion-item>
-        <ion-button class="ion-margin-top" expand="block" color="tertiary" (click)="configureProfile()" [disabled]="isBusy">
-          Configurar DataWedge
-        </ion-button>
-        <ion-text *ngIf="lastConfigureResult">
-          <p>Último resultado: {{ lastConfigureResult.result || 'sin resultado' }}</p>
-        </ion-text>
+
+        <ion-grid class="ion-margin-top">
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="primary" (click)="initialize()" [disabled]="isBusy">
+                Inicializar Plugin
+              </ion-button>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-button expand="block" color="secondary" (click)="getAvailability()" [disabled]="isBusy">
+                Verificar Disponibilidad
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <div *ngIf="initResult" class="ion-margin-top">
+          <ion-text color="medium">
+            <p><strong>Inicialización:</strong></p>
+            <p>Perfil: {{ initResult.profileName }}</p>
+            <p>Intent Action: {{ initResult.intentAction }}</p>
+          </ion-text>
+        </div>
+
+        <div *ngIf="availability" class="ion-margin-top">
+          <ion-text color="medium">
+            <p><strong>Disponibilidad:</strong></p>
+            <p>DataWedge presente: {{ availability.datawedge.present ? 'Sí' : 'No' }}</p>
+            <p>DataWedge habilitado: {{ availability.datawedge.enabled === true ? 'Sí' : (availability.datawedge.enabled === false ? 'No' : 'Desconocido') }}</p>
+            <p>Scanner presente: {{ availability.scanner.present === true ? 'Sí' : (availability.scanner.present === false ? 'No' : 'Desconocido') }}</p>
+            <p *ngIf="availability.scanner.status">Estado del scanner: {{ availability.scanner.status }}</p>
+            <div *ngIf="availability.scanner.scanners && availability.scanner.scanners.length > 0">
+              <p>Scanners detectados:</p>
+              <ul>
+                <li *ngFor="let scanner of availability.scanner.scanners">
+                  {{ scanner.name || 'Sin nombre' }} - {{ scanner.connected ? 'Conectado' : 'Desconectado' }}
+                </li>
+              </ul>
+            </div>
+          </ion-text>
+        </div>
       </ion-card-content>
     </ion-card>
 
@@ -117,7 +89,8 @@
           <ion-item *ngFor="let scan of scanEvents; trackBy: trackByTimestamp">
             <ion-label>
               <h3>{{ scan.data }}</h3>
-              <p>Tipo: {{ scan.type || 'No provisto' }}</p>
+              <p>Tipo: {{ scan.labelType || 'No provisto' }}</p>
+              <p *ngIf="scan.source">Fuente: {{ scan.source }}</p>
               <p class="timestamp">{{ scan.timestamp }}</p>
             </ion-label>
           </ion-item>

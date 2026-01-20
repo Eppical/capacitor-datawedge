@@ -71,18 +71,10 @@ npm run build && npm run cap:sync
 
 <docgen-index>
 
-* [`enable()`](#enable)
-* [`disable()`](#disable)
-* [`enableScanner()`](#enablescanner)
-* [`disableScanner()`](#disablescanner)
-* [`startScanning()`](#startscanning)
-* [`stopScanning()`](#stopscanning)
-* [`isReady()`](#isready)
-* [`hasScanner()`](#hasscanner)
-* [`configure(...)`](#configure)
-* [`configureProfile(...)`](#configureprofile)
+* [`initialize(...)`](#initialize)
+* [`getAvailability(...)`](#getavailability)
 * [`addListener('scan', ...)`](#addlistenerscan-)
-* [`__registerReceiver(...)`](#__registerreceiver)
+* [`addListener('datawedgeResult', ...)`](#addlistenerdatawedgeresult-)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -95,164 +87,32 @@ Package name can be changed by modyfing `DATAWEDGE_PACKAGE` variable [here](andr
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
 
-### enable()
+### initialize(...)
 
 ```typescript
-enable() => Promise<void>
+initialize(options?: InitializeOptions | undefined) => Promise<{ profileName: string; intentAction: string; }>
 ```
 
-Enables DataWedge
+| Param         | Type                                                            |
+| ------------- | --------------------------------------------------------------- |
+| **`options`** | <code><a href="#initializeoptions">InitializeOptions</a></code> |
 
-Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `true`
-
-**Since:** 0.0.3
+**Returns:** <code>Promise&lt;{ profileName: string; intentAction: string; }&gt;</code>
 
 --------------------
 
 
-### disable()
+### getAvailability(...)
 
 ```typescript
-disable() => Promise<void>
+getAvailability(options?: { timeoutMs?: number | undefined; } | undefined) => Promise<AvailabilityResult>
 ```
 
-Disables DataWedge
+| Param         | Type                                 |
+| ------------- | ------------------------------------ |
+| **`options`** | <code>{ timeoutMs?: number; }</code> |
 
-Broadcasts intent action with `.ENABLE_DATAWEDGE` extra set to `false`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### enableScanner()
-
-```typescript
-enableScanner() => Promise<void>
-```
-
-Enables physical scanner
-
-Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `ENABLE_PLUGIN`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### disableScanner()
-
-```typescript
-disableScanner() => Promise<void>
-```
-
-Disables physical scanner
-
-Broadcasts intent action with `.SCANNER_INPUT_PLUGIN` extra set to `DISABLE_PLUGIN`
-
-**Since:** 0.0.3
-
---------------------
-
-
-### startScanning()
-
-```typescript
-startScanning() => Promise<void>
-```
-
-Starts software scanning trigger
-
-Broadcasts intent action with `.SOFT_SCAN_TRIGGER` extra set to `START_SCANNING`
-
-**Since:** 0.1.2
-
---------------------
-
-
-### stopScanning()
-
-```typescript
-stopScanning() => Promise<void>
-```
-
-Stops software scanning trigger
-
-Broadcasts intent action with `.SOFT_SCAN_TRIGGER` extra set to `STOP_SCANNING`
-
-**Since:** 0.1.2
-
---------------------
-
-
-### isReady()
-
-```typescript
-isReady() => Promise<ReadyResult>
-```
-
-Checks if DataWedge is ready by requesting version information.
-
-**Returns:** <code>Promise&lt;<a href="#readyresult">ReadyResult</a>&gt;</code>
-
-**Since:** 0.4.0
-
---------------------
-
-
-### hasScanner()
-
-```typescript
-hasScanner() => Promise<ScannerStatusResult>
-```
-
-Checks if a scanner is available on the device.
-
-**Returns:** <code>Promise&lt;<a href="#scannerstatusresult">ScannerStatusResult</a>&gt;</code>
-
-**Since:** 0.4.0
-
---------------------
-
-
-### configure(...)
-
-```typescript
-configure(options: ConfigureOptions) => Promise<ConfigureResult>
-```
-
-Creates/updates a DataWedge profile and configures intent output.
-
-| Param         | Type                                                          |
-| ------------- | ------------------------------------------------------------- |
-| **`options`** | <code><a href="#configureoptions">ConfigureOptions</a></code> |
-
-**Returns:** <code>Promise&lt;<a href="#configureresult">ConfigureResult</a>&gt;</code>
-
-**Since:** 0.4.0
-
---------------------
-
-
-### configureProfile(...)
-
-```typescript
-configureProfile(options: ConfigureProfileOptions) => Promise<ConfigureResult>
-```
-
-Creates or updates a DataWedge profile using CONFIG_MODE: CREATE_IF_NOT_EXIST.
-This method creates the profile if it doesn't exist, or updates only the
-specified parameters if the profile already exists (other parameters remain unchanged).
-
-Configures BARCODE input, INTENT output, and KEYSTROKE output plugins.
-
-| Param         | Type                                                                        |
-| ------------- | --------------------------------------------------------------------------- |
-| **`options`** | <code><a href="#configureprofileoptions">ConfigureProfileOptions</a></code> |
-
-**Returns:** <code>Promise&lt;<a href="#configureresult">ConfigureResult</a>&gt;</code>
-
-**Since:** 0.5.0
+**Returns:** <code>Promise&lt;<a href="#availabilityresult">AvailabilityResult</a>&gt;</code>
 
 --------------------
 
@@ -260,40 +120,31 @@ Configures BARCODE input, INTENT output, and KEYSTROKE output plugins.
 ### addListener('scan', ...)
 
 ```typescript
-addListener(eventName: 'scan', listenerFunc: ScanListener) => Promise<PluginListenerHandle>
+addListener(eventName: 'scan', listenerFunc: (event: ScanEvent) => void) => Promise<{ remove: () => void; }>
 ```
 
-Listen for successful barcode readings
+| Param              | Type                                                                |
+| ------------------ | ------------------------------------------------------------------- |
+| **`eventName`**    | <code>'scan'</code>                                                 |
+| **`listenerFunc`** | <code>(event: <a href="#scanevent">ScanEvent</a>) =&gt; void</code> |
 
-***Notice:*** Requires intent action to be set to `com.capacitor.datawedge.RESULT_ACTION` in current DataWedge profile (it may change in the future)
-
-| Param              | Type                                                  |
-| ------------------ | ----------------------------------------------------- |
-| **`eventName`**    | <code>'scan'</code>                                   |
-| **`listenerFunc`** | <code><a href="#scanlistener">ScanListener</a></code> |
-
-**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
-
-**Since:** 0.1.0
+**Returns:** <code>Promise&lt;{ remove: () =&gt; void; }&gt;</code>
 
 --------------------
 
 
-### __registerReceiver(...)
+### addListener('datawedgeResult', ...)
 
 ```typescript
-__registerReceiver(options?: RegisterOptions | undefined) => Promise<void>
+addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void) => Promise<{ remove: () => void; }>
 ```
 
-Internal method to register intent broadcast receiver
+| Param              | Type                                 |
+| ------------------ | ------------------------------------ |
+| **`eventName`**    | <code>'datawedgeResult'</code>       |
+| **`listenerFunc`** | <code>(event: any) =&gt; void</code> |
 
-THIS METHOD IS FOR INTERNAL USE ONLY
-
-| Param         | Type                                                        |
-| ------------- | ----------------------------------------------------------- |
-| **`options`** | <code><a href="#registeroptions">RegisterOptions</a></code> |
-
-**Since:** 0.1.3
+**Returns:** <code>Promise&lt;{ remove: () =&gt; void; }&gt;</code>
 
 --------------------
 
@@ -301,74 +152,90 @@ THIS METHOD IS FOR INTERNAL USE ONLY
 ### Interfaces
 
 
-#### ReadyResult
+#### InitializeOptions
 
-| Prop              | Type                                                            | Description                                         | Since |
-| ----------------- | --------------------------------------------------------------- | --------------------------------------------------- | ----- |
-| **`ready`**       | <code>boolean</code>                                            | Whether DataWedge responded with version info.      | 0.4.0 |
-| **`versionInfo`** | <code><a href="#record">Record</a>&lt;string, string&gt;</code> | Version info returned by DataWedge, when available. | 0.4.0 |
-
-
-#### ScannerStatusResult
-
-| Prop             | Type                        | Description                                              | Since |
-| ---------------- | --------------------------- | -------------------------------------------------------- | ----- |
-| **`hasScanner`** | <code>boolean</code>        | Whether the device reports an available scanner.         | 0.4.0 |
-| **`status`**     | <code>string \| null</code> | Raw status string returned by DataWedge, when available. | 0.4.0 |
+| Prop                 | Type                |
+| -------------------- | ------------------- |
+| **`profileName`**    | <code>string</code> |
+| **`intentAction`**   | <code>string</code> |
+| **`intentCategory`** | <code>string</code> |
 
 
-#### ConfigureResult
+#### AvailabilityResult
 
-| Prop          | Type                 | Description                                  | Since |
-| ------------- | -------------------- | -------------------------------------------- | ----- |
-| **`success`** | <code>boolean</code> | Whether DataWedge reported success.          | 0.4.0 |
-| **`command`** | <code>string</code>  | Raw DataWedge command name, when available.  | 0.4.0 |
-| **`result`**  | <code>string</code>  | Raw DataWedge result string, when available. | 0.4.0 |
-
-
-#### PluginListenerHandle
-
-| Prop         | Type                                      |
-| ------------ | ----------------------------------------- |
-| **`remove`** | <code>() =&gt; Promise&lt;void&gt;</code> |
+| Prop            | Type                                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`datawedge`** | <code>{ present: boolean; enabled: boolean \| null; statusRaw?: any; }</code>                                                                                             |
+| **`scanner`**   | <code>{ present: boolean \| null; status?: string \| null; scanners?: { name?: string; connected?: boolean; index?: number; identifier?: string; }[]; raw?: any; }</code> |
+| **`raw`**       | <code>any</code>                                                                                                                                                          |
 
 
-#### ScanListenerEvent
+#### Array
 
-| Prop       | Type                        | Description     | Since |
-| ---------- | --------------------------- | --------------- | ----- |
-| **`data`** | <code>string</code>         | Data of barcode | 0.1.0 |
-| **`type`** | <code>string \| null</code> | Type of barcode | 0.2.1 |
+| Prop         | Type                | Description                                                                                            |
+| ------------ | ------------------- | ------------------------------------------------------------------------------------------------------ |
+| **`length`** | <code>number</code> | Gets or sets the length of the array. This is a number one higher than the highest index in the array. |
+
+| Method             | Signature                                                                                                                     | Description                                                                                                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **toString**       | () =&gt; string                                                                                                               | Returns a string representation of an array.                                                                                                                                                                                                |
+| **toLocaleString** | () =&gt; string                                                                                                               | Returns a string representation of an array. The elements are converted to string using their toLocalString methods.                                                                                                                        |
+| **pop**            | () =&gt; T \| undefined                                                                                                       | Removes the last element from an array and returns it. If the array is empty, undefined is returned and the array is not modified.                                                                                                          |
+| **push**           | (...items: T[]) =&gt; number                                                                                                  | Appends new elements to the end of an array, and returns the new length of the array.                                                                                                                                                       |
+| **concat**         | (...items: <a href="#concatarray">ConcatArray</a>&lt;T&gt;[]) =&gt; T[]                                                       | Combines two or more arrays. This method returns a new array without modifying any existing arrays.                                                                                                                                         |
+| **concat**         | (...items: (T \| <a href="#concatarray">ConcatArray</a>&lt;T&gt;)[]) =&gt; T[]                                                | Combines two or more arrays. This method returns a new array without modifying any existing arrays.                                                                                                                                         |
+| **join**           | (separator?: string \| undefined) =&gt; string                                                                                | Adds all the elements of an array into a string, separated by the specified separator string.                                                                                                                                               |
+| **reverse**        | () =&gt; T[]                                                                                                                  | Reverses the elements in an array in place. This method mutates the array and returns a reference to the same array.                                                                                                                        |
+| **shift**          | () =&gt; T \| undefined                                                                                                       | Removes the first element from an array and returns it. If the array is empty, undefined is returned and the array is not modified.                                                                                                         |
+| **slice**          | (start?: number \| undefined, end?: number \| undefined) =&gt; T[]                                                            | Returns a copy of a section of an array. For both start and end, a negative index can be used to indicate an offset from the end of the array. For example, -2 refers to the second to last element of the array.                           |
+| **sort**           | (compareFn?: ((a: T, b: T) =&gt; number) \| undefined) =&gt; this                                                             | Sorts an array in place. This method mutates the array and returns a reference to the same array.                                                                                                                                           |
+| **splice**         | (start: number, deleteCount?: number \| undefined) =&gt; T[]                                                                  | Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.                                                                                                                      |
+| **splice**         | (start: number, deleteCount: number, ...items: T[]) =&gt; T[]                                                                 | Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.                                                                                                                      |
+| **unshift**        | (...items: T[]) =&gt; number                                                                                                  | Inserts new elements at the start of an array, and returns the new length of the array.                                                                                                                                                     |
+| **indexOf**        | (searchElement: T, fromIndex?: number \| undefined) =&gt; number                                                              | Returns the index of the first occurrence of a value in an array, or -1 if it is not present.                                                                                                                                               |
+| **lastIndexOf**    | (searchElement: T, fromIndex?: number \| undefined) =&gt; number                                                              | Returns the index of the last occurrence of a specified value in an array, or -1 if it is not present.                                                                                                                                      |
+| **every**          | &lt;S extends T&gt;(predicate: (value: T, index: number, array: T[]) =&gt; value is S, thisArg?: any) =&gt; this is S[]       | Determines whether all the members of an array satisfy the specified test.                                                                                                                                                                  |
+| **every**          | (predicate: (value: T, index: number, array: T[]) =&gt; unknown, thisArg?: any) =&gt; boolean                                 | Determines whether all the members of an array satisfy the specified test.                                                                                                                                                                  |
+| **some**           | (predicate: (value: T, index: number, array: T[]) =&gt; unknown, thisArg?: any) =&gt; boolean                                 | Determines whether the specified callback function returns true for any element of an array.                                                                                                                                                |
+| **forEach**        | (callbackfn: (value: T, index: number, array: T[]) =&gt; void, thisArg?: any) =&gt; void                                      | Performs the specified action for each element in an array.                                                                                                                                                                                 |
+| **map**            | &lt;U&gt;(callbackfn: (value: T, index: number, array: T[]) =&gt; U, thisArg?: any) =&gt; U[]                                 | Calls a defined callback function on each element of an array, and returns an array that contains the results.                                                                                                                              |
+| **filter**         | &lt;S extends T&gt;(predicate: (value: T, index: number, array: T[]) =&gt; value is S, thisArg?: any) =&gt; S[]               | Returns the elements of an array that meet the condition specified in a callback function.                                                                                                                                                  |
+| **filter**         | (predicate: (value: T, index: number, array: T[]) =&gt; unknown, thisArg?: any) =&gt; T[]                                     | Returns the elements of an array that meet the condition specified in a callback function.                                                                                                                                                  |
+| **reduce**         | (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) =&gt; T) =&gt; T                           | Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.                      |
+| **reduce**         | (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) =&gt; T, initialValue: T) =&gt; T          |                                                                                                                                                                                                                                             |
+| **reduce**         | &lt;U&gt;(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) =&gt; U, initialValue: U) =&gt; U | Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.                      |
+| **reduceRight**    | (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) =&gt; T) =&gt; T                           | Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function. |
+| **reduceRight**    | (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) =&gt; T, initialValue: T) =&gt; T          |                                                                                                                                                                                                                                             |
+| **reduceRight**    | &lt;U&gt;(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) =&gt; U, initialValue: U) =&gt; U | Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function. |
+
+
+#### ConcatArray
+
+| Prop         | Type                |
+| ------------ | ------------------- |
+| **`length`** | <code>number</code> |
+
+| Method    | Signature                                                          |
+| --------- | ------------------------------------------------------------------ |
+| **join**  | (separator?: string \| undefined) =&gt; string                     |
+| **slice** | (start?: number \| undefined, end?: number \| undefined) =&gt; T[] |
+
+
+#### ScanEvent
+
+| Prop            | Type                |
+| --------------- | ------------------- |
+| **`data`**      | <code>string</code> |
+| **`labelType`** | <code>string</code> |
+| **`source`**    | <code>string</code> |
 
 
 ### Type Aliases
 
 
-#### Record
+#### ScannerStatus
 
-Construct a type with a set of properties K of type T
-
-<code>{ [P in K]: T; }</code>
-
-
-#### ConfigureOptions
-
-<code>{ /** * DataWedge profile name to create/update. * * @since 0.4.0 */ profileName: string;  /** * Package name to associate with the profile. * Defaults to the current app package on Android. * * @since 0.4.0 */ packageName?: string;  /** * Activity name to associate with the profile. * Defaults to '*'. * * @since 0.4.0 */ activityName?: string;  /** * Intent action DataWedge should broadcast scan results to. * Defaults to the same action used by the plugin receiver. * * @since 0.4.0 */ intentAction?: string; }</code>
-
-
-#### ConfigureProfileOptions
-
-<code>{ /** * DataWedge profile name to create or update. * Uses CONFIG_MODE: CREATE_IF_NOT_EXIST - creates the profile if it doesn't exist, * or updates parameters if the profile already exists. * * @since 0.5.0 */ profileName: string;  /** * Package name to associate with the profile. * Defaults to the current app package on Android. * * @since 0.5.0 */ packageName?: string;  /** * Activity name to associate with the profile. * Defaults to '*'. * * @since 0.5.0 */ activityName?: string;  /** * Intent action DataWedge should broadcast scan results to. * Defaults to the same action used by the plugin receiver. * * @since 0.5.0 */ intentAction?: string;  /** * Enable or disable the barcode scanner input plugin. * Defaults to true. * * @since 0.5.0 */ barcodeEnabled?: boolean;  /** * Enable or disable keystroke output plugin. * When enabled, scanned data is sent as keystrokes. * Defaults to false. * * @since 0.5.0 */ keystrokeEnabled?: boolean;  /** * Enable or disable intent output plugin. * When enabled, scanned data is broadcast via intent. * Defaults to true. * * @since 0.5.0 */ intentEnabled?: boolean; }</code>
-
-
-#### ScanListener
-
-<code>(state: <a href="#scanlistenerevent">ScanListenerEvent</a>): void</code>
-
-
-#### RegisterOptions
-
-<code>{ /** * Intent action name to listen for * * @since 0.3.1 */ intent?: string; }</code>
+<code>'WAITING' | 'SCANNING' | 'DISABLED' | 'CONNECTED' | 'DISCONNECTED' | string</code>
 
 </docgen-api>
 

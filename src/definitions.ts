@@ -60,6 +60,67 @@ export type ConfigureOptions = {
   intentAction?: string;
 };
 
+export type ConfigureProfileOptions = {
+  /**
+   * DataWedge profile name to create or update.
+   * Uses CONFIG_MODE: CREATE_IF_NOT_EXIST - creates the profile if it doesn't exist,
+   * or updates parameters if the profile already exists.
+   *
+   * @since 0.5.0
+   */
+  profileName: string;
+
+  /**
+   * Package name to associate with the profile.
+   * Defaults to the current app package on Android.
+   *
+   * @since 0.5.0
+   */
+  packageName?: string;
+
+  /**
+   * Activity name to associate with the profile.
+   * Defaults to '*'.
+   *
+   * @since 0.5.0
+   */
+  activityName?: string;
+
+  /**
+   * Intent action DataWedge should broadcast scan results to.
+   * Defaults to the same action used by the plugin receiver.
+   *
+   * @since 0.5.0
+   */
+  intentAction?: string;
+
+  /**
+   * Enable or disable the barcode scanner input plugin.
+   * Defaults to true.
+   *
+   * @since 0.5.0
+   */
+  barcodeEnabled?: boolean;
+
+  /**
+   * Enable or disable keystroke output plugin.
+   * When enabled, scanned data is sent as keystrokes.
+   * Defaults to false.
+   *
+   * @since 0.5.0
+   */
+  keystrokeEnabled?: boolean;
+
+  /**
+   * Enable or disable intent output plugin.
+   * When enabled, scanned data is broadcast via intent.
+   * Defaults to true.
+   *
+   * @since 0.5.0
+   */
+  intentEnabled?: boolean;
+};
+
 export interface ConfigureResult {
   /**
    * Whether DataWedge reported success.
@@ -190,6 +251,17 @@ export interface DataWedgePlugin {
    * @since 0.4.0
    */
   configure(options: ConfigureOptions): Promise<ConfigureResult>;
+
+  /**
+   * Creates or updates a DataWedge profile using CONFIG_MODE: CREATE_IF_NOT_EXIST.
+   * This method creates the profile if it doesn't exist, or updates only the
+   * specified parameters if the profile already exists (other parameters remain unchanged).
+   *
+   * Configures BARCODE input, INTENT output, and KEYSTROKE output plugins.
+   *
+   * @since 0.5.0
+   */
+  configureProfile(options: ConfigureProfileOptions): Promise<ConfigureResult>;
 
   /**
    * Listen for successful barcode readings

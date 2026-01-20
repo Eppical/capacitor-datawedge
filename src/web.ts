@@ -2,6 +2,7 @@ import { WebPlugin } from '@capacitor/core';
 
 import type {
   ConfigureOptions,
+  ConfigureProfileOptions,
   ConfigureResult,
   DataWedgePlugin,
   ReadyResult,
@@ -42,6 +43,10 @@ export class DataWedgeWeb extends WebPlugin implements DataWedgePlugin {
   }
 
   async configure(_options: ConfigureOptions): Promise<ConfigureResult> {
+    throw 'DataWedge is not supported on web';
+  }
+
+  async configureProfile(_options: ConfigureProfileOptions): Promise<ConfigureResult> {
     throw 'DataWedge is not supported on web';
   }
 

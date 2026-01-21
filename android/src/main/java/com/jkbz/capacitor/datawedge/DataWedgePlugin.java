@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -190,7 +191,7 @@ public class DataWedgePlugin extends Plugin {
     filter.addAction(DW_ENUMERATED_ACTION);
     filter.addCategory(Intent.CATEGORY_DEFAULT);
 
-    getContext().registerReceiver(dwReceiver, filter);
+    ContextCompat.registerReceiver(getContext(), dwReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
     receiverRegistered = true;
   }
 

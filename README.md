@@ -73,6 +73,7 @@ npm run build && npm run cap:sync
 
 * [`initialize(...)`](#initialize)
 * [`getAvailability(...)`](#getavailability)
+* [`onScanResult(...)`](#onscanresult)
 * [`addListener('scan', ...)`](#addlistenerscan-)
 * [`addListener('datawedgeResult', ...)`](#addlistenerdatawedgeresult-)
 * [Interfaces](#interfaces)
@@ -113,6 +114,24 @@ getAvailability(options?: { timeoutMs?: number | undefined; } | undefined) => Pr
 | **`options`** | <code>{ timeoutMs?: number; }</code> |
 
 **Returns:** <code>Promise&lt;<a href="#availabilityresult">AvailabilityResult</a>&gt;</code>
+
+--------------------
+
+
+### onScanResult(...)
+
+```typescript
+onScanResult(callback: ScanResultCallback) => Promise<RemoveListener>
+```
+
+Suscribe a eventos de escaneo con API simplificada.
+Retorna una función para cancelar la suscripción.
+
+| Param          | Type                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| **`callback`** | <code><a href="#scanresultcallback">ScanResultCallback</a></code> |
+
+**Returns:** <code>Promise&lt;<a href="#removelistener">RemoveListener</a>&gt;</code>
 
 --------------------
 
@@ -163,11 +182,12 @@ addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void) =>
 
 #### AvailabilityResult
 
-| Prop            | Type                                                                                                                                                                      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`datawedge`** | <code>{ present: boolean; enabled: boolean \| null; statusRaw?: any; }</code>                                                                                             |
-| **`scanner`**   | <code>{ present: boolean \| null; status?: string \| null; scanners?: { name?: string; connected?: boolean; index?: number; identifier?: string; }[]; raw?: any; }</code> |
-| **`raw`**       | <code>any</code>                                                                                                                                                          |
+| Prop            | Type                                                                                                                                                                      | Description                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **`datawedge`** | <code>{ present: boolean; enabled: boolean \| null; statusRaw?: any; }</code>                                                                                             |                                                     |
+| **`scanner`**   | <code>{ present: boolean \| null; status?: string \| null; scanners?: { name?: string; connected?: boolean; index?: number; identifier?: string; }[]; raw?: any; }</code> |                                                     |
+| **`raw`**       | <code>any</code>                                                                                                                                                          |                                                     |
+| **`timedOut`**  | <code>boolean</code>                                                                                                                                                      | Indica si hubo timeout al obtener la disponibilidad |
 
 
 #### Array
@@ -236,6 +256,20 @@ addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void) =>
 #### ScannerStatus
 
 <code>'WAITING' | 'SCANNING' | 'DISABLED' | 'CONNECTED' | 'DISCONNECTED' | string</code>
+
+
+#### RemoveListener
+
+Función para remover un listener de escaneo
+
+<code>(): void</code>
+
+
+#### ScanResultCallback
+
+Callback para recibir resultados de escaneo
+
+<code>(result: <a href="#scanevent">ScanEvent</a>): void</code>
 
 </docgen-api>
 

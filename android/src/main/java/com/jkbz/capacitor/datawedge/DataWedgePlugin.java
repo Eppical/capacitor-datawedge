@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -65,12 +67,16 @@ public class DataWedgePlugin extends Plugin {
   // Single outstanding availability promise (startup-friendly)
   private AvailabilityRequest pendingAvailability = null;
 
+  // Handler para timeout activo
+  private final Handler mainHandler = new Handler(Looper.getMainLooper());
+  private Runnable timeoutRunnable = null;
+
   private static class AvailabilityRequest {
     String reqId;
     long deadlineMs;
     PluginCall call;
 
-    @Nullable Bundle dwStatusBundle;
+    @Nullable String dwStatusString;
     @Nullable String scannerStatus;
     @Nullable ArrayList<Bundle> scannerList;
 
@@ -81,7 +87,7 @@ public class DataWedgePlugin extends Plugin {
     }
 
     boolean isComplete() {
-      return dwStatusBundle != null && scannerStatus != null && scannerList != null;
+      return dwStatusString != null && scannerStatus != null && scannerList != null;
     }
   }
 
@@ -120,15 +126,29 @@ public class DataWedgePlugin extends Plugin {
         if (pendingAvailability != null) {
           long now = System.currentTimeMillis();
           if (now > pendingAvailability.deadlineMs) {
-            PluginCall c = pendingAvailability.call;
+            // En lugar de rechazar, resolver con datos parciales + timedOut=true
+            resolveAvailabilityWithTimeout(pendingAvailability);
             pendingAvailability = null;
-            c.reject("DataWedge availability timeout");
             return;
           }
 
           if (extras != null) {
-            if (extras.containsKey(RESULT_GET_DW_STATUS) && pendingAvailability.dwStatusBundle == null) {
-              pendingAvailability.dwStatusBundle = extras.getBundle(RESULT_GET_DW_STATUS);
+            if (extras.containsKey(RESULT_GET_DW_STATUS) && pendingAvailability.dwStatusString == null) {
+              // DataWedge returns a String (e.g., "ENABLED" or "DISABLED"), not a Bundle
+              Object dwStatus = extras.get(RESULT_GET_DW_STATUS);
+              if (dwStatus instanceof String) {
+                pendingAvailability.dwStatusString = (String) dwStatus;
+              } else if (dwStatus instanceof Bundle) {
+                // Fallback for older DataWedge versions that might return a Bundle
+                Bundle b = (Bundle) dwStatus;
+                for (String k : b.keySet()) {
+                  Object v = b.get(k);
+                  if (v instanceof String) {
+                    pendingAvailability.dwStatusString = (String) v;
+                    break;
+                  }
+                }
+              }
             }
 
             if (extras.containsKey(RESULT_SCANNER_STATUS) && pendingAvailability.scannerStatus == null) {
@@ -191,7 +211,7 @@ public class DataWedgePlugin extends Plugin {
     filter.addAction(DW_ENUMERATED_ACTION);
     filter.addCategory(Intent.CATEGORY_DEFAULT);
 
-    ContextCompat.registerReceiver(getContext(), dwReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+    ContextCompat.registerReceiver(getContext(), dwReceiver, filter, ContextCompat.RECEIVER_EXPORTED);
     receiverRegistered = true;
   }
 
@@ -234,18 +254,34 @@ public class DataWedgePlugin extends Plugin {
   public void getAvailability(PluginCall call) {
     registerReceiver();
 
+    // Cancelar timeout anterior si existe
+    if (timeoutRunnable != null) {
+      mainHandler.removeCallbacks(timeoutRunnable);
+      timeoutRunnable = null;
+    }
+
     if (pendingAvailability != null) {
       try { pendingAvailability.call.reject("Replaced by a new getAvailability() call"); } catch (Exception ignored) {}
       pendingAvailability = null;
     }
 
-    int timeoutMs = 5000;
+    int timeoutMs = 1000;
     Integer t = call.getInt("timeoutMs");
     if (t != null && t > 0) timeoutMs = t;
 
     String reqId = "AVAIL_" + UUID.randomUUID();
     long deadline = System.currentTimeMillis() + timeoutMs;
     pendingAvailability = new AvailabilityRequest(reqId, deadline, call);
+
+    // Programar timeout activo
+    timeoutRunnable = () -> {
+      if (pendingAvailability != null) {
+        resolveAvailabilityWithTimeout(pendingAvailability);
+        pendingAvailability = null;
+      }
+      timeoutRunnable = null;
+    };
+    mainHandler.postDelayed(timeoutRunnable, timeoutMs);
 
     sendDwCommand(EXTRA_GET_DW_STATUS, "", "GET_DW_STATUS_" + reqId);
     sendDwCommand(EXTRA_ENUM_SCANNERS, "", "ENUM_SCANNERS_" + reqId);
@@ -347,19 +383,18 @@ public class DataWedgePlugin extends Plugin {
   }
 
   private void resolveAvailability(AvailabilityRequest r) {
-    boolean dwPresent = (r.dwStatusBundle != null);
+    // Cancelar el timeout ya que resolvemos exitosamente
+    if (timeoutRunnable != null) {
+      mainHandler.removeCallbacks(timeoutRunnable);
+      timeoutRunnable = null;
+    }
+
+    boolean dwPresent = (r.dwStatusString != null);
     Boolean dwEnabled = null;
 
-    if (r.dwStatusBundle != null) {
-      for (String k : r.dwStatusBundle.keySet()) {
-        Object v = r.dwStatusBundle.get(k);
-        if (v instanceof String) {
-          String s = (String) v;
-          if ("enabled".equalsIgnoreCase(s) || "disabled".equalsIgnoreCase(s)) {
-            dwEnabled = "enabled".equalsIgnoreCase(s);
-            break;
-          }
-        }
+    if (r.dwStatusString != null) {
+      if ("enabled".equalsIgnoreCase(r.dwStatusString) || "disabled".equalsIgnoreCase(r.dwStatusString)) {
+        dwEnabled = "enabled".equalsIgnoreCase(r.dwStatusString);
       }
     }
 
@@ -373,7 +408,7 @@ public class DataWedgePlugin extends Plugin {
     JSObject dw = new JSObject();
     dw.put("present", dwPresent);
     dw.put("enabled", dwEnabled);
-    dw.put("statusRaw", bundleToJson(r.dwStatusBundle));
+    dw.put("statusRaw", r.dwStatusString);
     out.put("datawedge", dw);
 
     JSObject sc = new JSObject();
@@ -395,9 +430,62 @@ public class DataWedgePlugin extends Plugin {
     out.put("scanner", sc);
 
     JSObject raw = new JSObject();
-    raw.put("dwStatusBundle", bundleToJson(r.dwStatusBundle));
+    raw.put("dwStatus", r.dwStatusString);
     raw.put("scannerStatus", r.scannerStatus);
     out.put("raw", raw);
+
+    r.call.resolve(out);
+  }
+
+  private void resolveAvailabilityWithTimeout(AvailabilityRequest r) {
+    // Resolver con datos parciales + flag timedOut
+    boolean dwPresent = (r.dwStatusString != null);
+    Boolean dwEnabled = null;
+
+    if (r.dwStatusString != null) {
+      if ("enabled".equalsIgnoreCase(r.dwStatusString) || "disabled".equalsIgnoreCase(r.dwStatusString)) {
+        dwEnabled = "enabled".equalsIgnoreCase(r.dwStatusString);
+      }
+    }
+
+    Boolean scannerPresent = null;
+    if (r.scannerList != null) {
+      scannerPresent = !r.scannerList.isEmpty();
+    }
+
+    JSObject out = new JSObject();
+
+    JSObject dw = new JSObject();
+    dw.put("present", dwPresent);
+    dw.put("enabled", dwEnabled);
+    dw.put("statusRaw", r.dwStatusString);
+    out.put("datawedge", dw);
+
+    JSObject sc = new JSObject();
+    sc.put("present", scannerPresent);
+    sc.put("status", r.scannerStatus);
+
+    ArrayList<JSObject> scanners = new ArrayList<>();
+    if (r.scannerList != null) {
+      for (Bundle b : r.scannerList) {
+        JSObject s = new JSObject();
+        if (b.containsKey("SCANNER_NAME")) s.put("name", b.getString("SCANNER_NAME"));
+        if (b.containsKey("SCANNER_CONNECTION_STATE")) s.put("connected", b.getBoolean("SCANNER_CONNECTION_STATE"));
+        if (b.containsKey("SCANNER_INDEX")) s.put("index", b.getInt("SCANNER_INDEX"));
+        if (b.containsKey("SCANNER_IDENTIFIER")) s.put("identifier", b.getString("SCANNER_IDENTIFIER"));
+        scanners.add(s);
+      }
+    }
+    sc.put("scanners", scanners);
+    out.put("scanner", sc);
+
+    JSObject raw = new JSObject();
+    raw.put("dwStatus", r.dwStatusString);
+    raw.put("scannerStatus", r.scannerStatus);
+    out.put("raw", raw);
+
+    // Flag indicando que hubo timeout
+    out.put("timedOut", true);
 
     r.call.resolve(out);
   }

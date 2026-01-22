@@ -6,7 +6,15 @@
       "Bash(gradlew.bat assembleDebug:*)",
       "Bash(cmd /c \"gradlew.bat assembleDebug\")",
       "Bash(gradle wrapper:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(npm run clean:*)",
+      "Bash(npm run docgen:*)",
+      "Bash(tsc)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(node ./node_modules/typescript/bin/tsc:*)",
+      "Bash(npx rollup:*)",
+      "Bash(node:*)"
     ]
   }
 }

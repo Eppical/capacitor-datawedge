@@ -3,6 +3,7 @@ import {
   DataWedge,
   type AvailabilityResult,
   type ScanEvent,
+  type RemoveListener,
 } from 'capacitor-datawedge';
 
 interface ScanEntry extends ScanEvent {
@@ -23,15 +24,16 @@ export class AppComponent implements OnInit, OnDestroy {
   isInitialized = false;
   initResult?: { profileName: string; intentAction: string };
   availability?: AvailabilityResult;
-  private scanListener?: { remove: () => void };
   activeAction?: string;
+  isAttached = false;
+  private unsubscribeScan?: RemoveListener;
 
   ngOnInit(): void {
-    this.attachScanListener();
+    // Ya no adjuntamos automáticamente - el usuario decide cuándo
   }
 
   ngOnDestroy(): void {
-    this.scanListener?.remove();
+    this.detachScanner();
   }
 
   get isBusy(): boolean {
@@ -91,14 +93,37 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async attachScanListener(): Promise<void> {
-    this.scanListener = await DataWedge.addListener('scan', (event: ScanEvent) => {
-      const timestamp = new Date().toISOString();
-      this.scanEvents = [{ ...event, timestamp }, ...this.scanEvents].slice(0, 50);
-      this.addLog(`Escaneo recibido (${event.labelType ?? 'sin tipo'}): ${event.data}`);
-    });
+  async attachScanner(): Promise<void> {
+    if (this.isAttached) {
+      this.addLog('Ya está adjunto al scanner.');
+      return;
+    }
 
-    this.addLog('Listener de escaneo registrado.');
+    try {
+      this.unsubscribeScan = await DataWedge.onScanResult((event: ScanEvent) => {
+        const timestamp = new Date().toISOString();
+        this.scanEvents = [{ ...event, timestamp }, ...this.scanEvents].slice(0, 50);
+        this.addLog(`Escaneo recibido (${event.labelType ?? 'sin tipo'}): ${event.data}`);
+      });
+
+      this.isAttached = true;
+      this.addLog('Scanner adjuntado. Listo para recibir escaneos.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `${error}`;
+      this.addLog(`Error al adjuntar scanner: ${message}`);
+    }
+  }
+
+  detachScanner(): void {
+    if (!this.isAttached || !this.unsubscribeScan) {
+      this.addLog('El scanner no está adjunto.');
+      return;
+    }
+
+    this.unsubscribeScan();
+    this.unsubscribeScan = undefined;
+    this.isAttached = false;
+    this.addLog('Scanner desadjuntado. No se recibirán escaneos.');
   }
 
   private addLog(message: string): void {

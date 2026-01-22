@@ -10,6 +10,16 @@ export interface ScanEvent {
   source?: string;
 }
 
+/**
+ * Callback para recibir resultados de escaneo
+ */
+export type ScanResultCallback = (result: ScanEvent) => void;
+
+/**
+ * Función para remover un listener de escaneo
+ */
+export type RemoveListener = () => void;
+
 export type ScannerStatus =
   | 'WAITING'
   | 'SCANNING'
@@ -36,11 +46,27 @@ export interface AvailabilityResult {
     raw?: any;
   };
   raw?: any;
+  /** Indica si hubo timeout al obtener la disponibilidad */
+  timedOut?: boolean;
 }
 
 export interface DataWedgePlugin {
   initialize(options?: InitializeOptions): Promise<{ profileName: string; intentAction: string }>;
   getAvailability(options?: { timeoutMs?: number }): Promise<AvailabilityResult>;
+
+  /**
+   * Suscribe a eventos de escaneo con API simplificada.
+   * Retorna una función para cancelar la suscripción.
+   *
+   * @example
+   * const unsubscribe = await DataWedge.onScanResult((scan) => {
+   *   console.log('Escaneado:', scan.data);
+   * });
+   * // Para desuscribirse:
+   * unsubscribe();
+   */
+  onScanResult(callback: ScanResultCallback): Promise<RemoveListener>;
+
   addListener(eventName: 'scan', listenerFunc: (event: ScanEvent) => void): Promise<{ remove: () => void }>;
   addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void): Promise<{ remove: () => void }>;
 }

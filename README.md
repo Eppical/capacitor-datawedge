@@ -35,20 +35,21 @@ Enable intent output in your DataWedge profile, set `Intent delivery` to `Broadc
 ```js
 import { DataWedge } from 'capacitor-datawedge';
 
-// Configure a DataWedge profile automatically (profile name required).
+// Initialize DataWedge with a profile name (required).
 // The intentAction can be customized; defaults to the plugin receiver action.
-await DataWedge.configure({
+await DataWedge.initialize({
   profileName: 'MyAppProfile',
   intentAction: 'com.capacitor.datawedge.RESULT_ACTION',
 });
 
-// Optional: in case you want to use your custom intent action instead
-// DataWedge.__registerReceiver({ intent: "my.custom.action" });
-
 // Register scan listener to receive barcode data
-DataWedge.addListener('scan', event => {
+// The method returns a function to unsubscribe
+const unsubscribe = await DataWedge.onScanResult(event => {
   console.log(event.data);
 });
+
+// To stop receiving scan events, call the unsubscribe function
+// unsubscribe();
 
 // Scanning the barcode using physical trigger should fire up your scan callback!
 // Check API for more methods
@@ -74,8 +75,6 @@ npm run build && npm run cap:sync
 * [`initialize(...)`](#initialize)
 * [`getAvailability(...)`](#getavailability)
 * [`onScanResult(...)`](#onscanresult)
-* [`addListener('scan', ...)`](#addlistenerscan-)
-* [`addListener('datawedgeResult', ...)`](#addlistenerdatawedgeresult-)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 
@@ -132,38 +131,6 @@ Retorna una función para cancelar la suscripción.
 | **`callback`** | <code><a href="#scanresultcallback">ScanResultCallback</a></code> |
 
 **Returns:** <code>Promise&lt;<a href="#removelistener">RemoveListener</a>&gt;</code>
-
---------------------
-
-
-### addListener('scan', ...)
-
-```typescript
-addListener(eventName: 'scan', listenerFunc: (event: ScanEvent) => void) => Promise<{ remove: () => void; }>
-```
-
-| Param              | Type                                                                |
-| ------------------ | ------------------------------------------------------------------- |
-| **`eventName`**    | <code>'scan'</code>                                                 |
-| **`listenerFunc`** | <code>(event: <a href="#scanevent">ScanEvent</a>) =&gt; void</code> |
-
-**Returns:** <code>Promise&lt;{ remove: () =&gt; void; }&gt;</code>
-
---------------------
-
-
-### addListener('datawedgeResult', ...)
-
-```typescript
-addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void) => Promise<{ remove: () => void; }>
-```
-
-| Param              | Type                                 |
-| ------------------ | ------------------------------------ |
-| **`eventName`**    | <code>'datawedgeResult'</code>       |
-| **`listenerFunc`** | <code>(event: any) =&gt; void</code> |
-
-**Returns:** <code>Promise&lt;{ remove: () =&gt; void; }&gt;</code>
 
 --------------------
 

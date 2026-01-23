@@ -7,15 +7,19 @@ const DataWedgeBase = registerPlugin<DataWedgePlugin>('DataWedge', {
 
 /**
  * Plugin DataWedge con API simplificada para escaneo.
+ * Solo expone los métodos públicos definidos en la interfaz.
  */
 export const DataWedge: DataWedgePlugin = {
-  initialize: (options) => DataWedgeBase.initialize(options),
-  getAvailability: (options) => DataWedgeBase.getAvailability(options),
-  addListener: ((eventName: string, listenerFunc: (event: any) => void) =>
-    DataWedgeBase.addListener(eventName as 'scan', listenerFunc)) as DataWedgePlugin['addListener'],
+  async initialize(options) {
+    return DataWedgeBase.initialize(options);
+  },
+
+  async getAvailability(options) {
+    return DataWedgeBase.getAvailability(options);
+  },
 
   async onScanResult(callback: ScanResultCallback): Promise<RemoveListener> {
-    const listener = await DataWedgeBase.addListener('scan', callback);
+    const listener = await (DataWedgeBase as any).addListener('scan', callback);
     return () => listener.remove();
   },
 };

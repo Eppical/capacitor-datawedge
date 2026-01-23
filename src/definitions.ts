@@ -66,7 +66,4 @@ export interface DataWedgePlugin {
    * unsubscribe();
    */
   onScanResult(callback: ScanResultCallback): Promise<RemoveListener>;
-
-  addListener(eventName: 'scan', listenerFunc: (event: ScanEvent) => void): Promise<{ remove: () => void }>;
-  addListener(eventName: 'datawedgeResult', listenerFunc: (event: any) => void): Promise<{ remove: () => void }>;
 }
